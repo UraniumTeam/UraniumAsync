@@ -8,17 +8,23 @@ using namespace UN::Async;
 
 Ptr<IJobScheduler> pScheduler = AllocateObject<JobScheduler>(4);
 
-Task<std::thread::id> Test()
+std::thread::id TestTask(int n)
 {
-    co_await Job::Run(pScheduler.Get());
-
     std::vector<int> test;
-    for (int i = 0; i < 10'000'000; ++i)
+    for (int i = 0; i < n; ++i)
     {
         test.push_back(i);
     }
 
-    co_return std::this_thread::get_id();
+    return std::this_thread::get_id();
+}
+
+Task<std::thread::id> Test()
+{
+    co_await Job::Run(pScheduler.Get());
+    std::cout << "start" << std::endl;
+
+    co_return co_await Job::Run(pScheduler.Get(), &TestTask, 10'000'000);
 }
 
 Task<> Test1()
@@ -31,10 +37,12 @@ Task<> Test1()
 Task<> TestAwait()
 {
     co_await Job::Run(pScheduler.Get());
-    co_await Test1();
+    auto t1 = Test1();
     std::cout << "1" << std::endl;
-    co_await Test1();
+    auto t2 = Test1();
     std::cout << "2" << std::endl;
+    co_await t1;
+    co_await t2;
 }
 
 int main()

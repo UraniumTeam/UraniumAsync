@@ -102,7 +102,7 @@ namespace UN::Async
         inline static SchedulerOperation Run(IJobScheduler* pScheduler);
 
         template<class TFunc, class... Args>
-        inline static auto Run(IJobScheduler* pScheduler, TFunc f, Args&&... args) -> std::invoke_result_t<TFunc, Args...>
+        inline static auto Run(IJobScheduler* pScheduler, TFunc f, Args&&... args) -> Task<std::invoke_result_t<TFunc, Args...>>
         {
             co_await Run(pScheduler);
 
