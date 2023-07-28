@@ -70,12 +70,12 @@ namespace UN::Async
     } // namespace Internal
 
     template<class T>
-    concept AwaitableTraitsWork = requires
+    concept Awaitable = requires
     {
         Internal::GetAwaiter(std::declval<T>());
     };
 
-    template<AwaitableTraitsWork T>
+    template<Awaitable T>
     struct AwaitableTraits
     {
         using AwaiterType     = decltype(Internal::GetAwaiter(std::declval<T>()));

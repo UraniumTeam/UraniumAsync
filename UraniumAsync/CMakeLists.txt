@@ -20,6 +20,10 @@ set(SRC
     UnAsync/SyncWait.h
     UnAsync/Task.h
     UnAsync/Traits.h
+    UnAsync/Internal/WhenAllCounter.h
+    UnAsync/Internal/WhenAllReadyAwaiter.h
+    UnAsync/Internal/WhenAllTask.h
+    UnAsync/WhenAll.h
 )
 
 add_library(UnAsync STATIC ${SRC})

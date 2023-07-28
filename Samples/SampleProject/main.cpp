@@ -1,7 +1,8 @@
+#include <UnAsync/Jobs/JobScheduler.h>
 #include <UnAsync/SyncWait.h>
 #include <UnAsync/Task.h>
+#include <UnAsync/WhenAll.h>
 #include <iostream>
-#include <UnAsync/Jobs/JobScheduler.h>
 
 using namespace UN;
 using namespace UN::Async;
@@ -22,7 +23,7 @@ std::thread::id TestTask(int n)
 Task<std::thread::id> Test()
 {
     co_await Job::Run(pScheduler.Get());
-    std::cout << "start" << std::endl;
+    std::cout << "start\n" << std::flush;
 
     co_return co_await Job::Run(pScheduler.Get(), &TestTask, 10'000'000);
 }
@@ -30,19 +31,17 @@ Task<std::thread::id> Test()
 Task<> Test1()
 {
     co_await Job::Run(pScheduler.Get());
-    std::cout << co_await Test() << std::endl;
-    std::cout << co_await Test() << std::endl;
+
+    auto [a, b, c] = co_await WhenAllReady(Test(), Test(), Test());
+    std::cout << a.GetResult() << std::endl;
+    std::cout << b.GetResult() << std::endl;
+    std::cout << c.GetResult() << std::endl;
 }
 
 Task<> TestAwait()
 {
     co_await Job::Run(pScheduler.Get());
-    auto t1 = Test1();
-    std::cout << "1" << std::endl;
-    auto t2 = Test1();
-    std::cout << "2" << std::endl;
-    co_await t1;
-    co_await t2;
+    co_await WhenAllReady(Test1(), Test1());
 }
 
 int main()
