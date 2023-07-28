@@ -1,10 +1,21 @@
 set(SRC
+    UnAsync/Internal/BoolPointer.h
     UnAsync/Internal/ManualResetEvent.cpp
     UnAsync/Internal/ManualResetEvent.h
     UnAsync/Internal/PlatformInclude.h
     UnAsync/Internal/SyncWaitTask.h
     UnAsync/Internal/TaskPromise.h
     UnAsync/Internal/TaskPromiseBase.h
+
+    UnAsync/Jobs/Job.h
+    UnAsync/Jobs/JobTree.h
+    UnAsync/Jobs/IJobScheduler.h
+    UnAsync/Jobs/JobScheduler.h
+    UnAsync/Jobs/JobScheduler.cpp
+
+    UnAsync/Parallel/Semaphore.h
+    UnAsync/Parallel/Semaphore.cpp
+    UnAsync/Parallel/SpinMutex.h
 
     UnAsync/SyncWait.h
     UnAsync/Task.h
@@ -21,7 +32,7 @@ set_target_properties(UnAsync PROPERTIES FOLDER "UraniumAsync")
 
 if (UN_WINDOWS)
     target_link_libraries(UnAsync UnTL Ws2_32 Mswsock Synchronization)
-else()
+else ()
     target_link_libraries(UnAsync UnTL)
 endif ()
 
