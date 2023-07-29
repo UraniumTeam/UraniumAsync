@@ -32,10 +32,10 @@ Task<> Test1()
 {
     co_await Job::Run(pScheduler.Get());
 
-    auto [a, b, c] = co_await WhenAllReady(Test(), Test(), Test());
-    std::cout << a.GetResult() << std::endl;
-    std::cout << b.GetResult() << std::endl;
-    std::cout << c.GetResult() << std::endl;
+    auto [a, b, c] = co_await WhenAll(Test(), Test(), Test());
+    std::cout << a << std::endl;
+    std::cout << b << std::endl;
+    std::cout << c << std::endl;
 }
 
 Task<> TestAwait()

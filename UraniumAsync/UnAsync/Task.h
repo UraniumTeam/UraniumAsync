@@ -19,7 +19,7 @@ namespace UN::Async
         {
             std::coroutine_handle<promise_type> m_Coroutine;
 
-            inline AwaiterBase(std::coroutine_handle<promise_type> coroutine) noexcept
+            inline explicit AwaiterBase(std::coroutine_handle<promise_type> coroutine) noexcept
                 : m_Coroutine(coroutine)
             {
             }
