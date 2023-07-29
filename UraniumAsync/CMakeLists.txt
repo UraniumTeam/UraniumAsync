@@ -24,6 +24,8 @@ set(SRC
     UnAsync/Internal/WhenAllReadyAwaiter.h
     UnAsync/Internal/WhenAllTask.h
     UnAsync/WhenAll.h
+    UnAsync/Internal/TaskMapAwaiter.h
+    UnAsync/TaskMap.h
 )
 
 add_library(UnAsync STATIC ${SRC})
