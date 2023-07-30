@@ -26,6 +26,12 @@ set(SRC
     UnAsync/WhenAll.h
     UnAsync/Internal/TaskMapAwaiter.h
     UnAsync/TaskMap.h
+    UnAsync/Cancellation/CancellationSource.h
+    UnAsync/Cancellation/CancellationToken.h
+    UnAsync/Cancellation/CancellationSource.cpp
+    UnAsync/Internal/CancellationState.cpp
+    UnAsync/Internal/CancellationState.h
+    UnAsync/Cancellation/CancellationToken.cpp
 )
 
 add_library(UnAsync STATIC ${SRC})
