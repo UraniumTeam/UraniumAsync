@@ -36,9 +36,11 @@ namespace UN::Async
             std::make_tuple(Internal::MakeWhenAllTask(std::forward<TAwaitables>(awaitables))...));
     }
 
+    // clang-format off
     template<class... TAwaitables>
     requires(Awaitable<Internal::UnwrapReference<std::remove_reference_t<TAwaitables>>>&&...)
-        [[nodiscard]] auto WhenAll(TAwaitables&&... awaitables)
+    [[nodiscard]] UN_FINLINE auto WhenAll(TAwaitables&&... awaitables)
+    // clang-format on
     {
         return MapTask(
             [](auto&& taskTuple) {
