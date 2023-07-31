@@ -168,7 +168,15 @@ namespace UN::Async
                     return;
                 }
 
+                bool shouldSleep = false;
                 if (m_GlobalQueue.Empty())
+                {
+                    NotifyWorker();
+
+                    shouldSleep = m_GlobalQueue.Empty();
+                }
+
+                if (shouldSleep)
                 {
                     ++m_SleepingWorkerCount;
                     m_CurrentThreadInfo->IsSleeping.store(true);

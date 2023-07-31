@@ -47,6 +47,7 @@ Task<> Test1(const CancellationToken& cancellationToken)
 Task<> CancellingTask(CancellationSource& source)
 {
     co_await Job::Run(pScheduler.Get());
+    std::cout << "Cancelling task\n" << std::flush;
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(5s);
     source.Cancel();
@@ -68,7 +69,6 @@ Task<> TestAwait()
 
 int main()
 {
-    // TODO: for some reason the CancellingTask sometimes blocks the scheduler
     auto task = TestAwait();
     SyncWait(task);
     return 0;
