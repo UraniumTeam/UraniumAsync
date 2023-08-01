@@ -28,11 +28,20 @@ set(SRC
     UnAsync/Parallel/Semaphore.cpp
     UnAsync/Parallel/SpinMutex.h
 
+    UnAsync/Pipes/Pipe.cpp
+    UnAsync/Pipes/Pipe.h
+    UnAsync/Pipes/Internal/BufferSegment.h
+
     UnAsync/SyncWait.h
     UnAsync/Task.h
     UnAsync/Traits.h
     UnAsync/WhenAll.h
     UnAsync/TaskMap.h
+    UnAsync/AsyncEvent.h
+    UnAsync/AsyncEvent.cpp
+    UnAsync/Buffers/IReadOnlySequenceSegment.h
+    UnAsync/Buffers/ReadOnlySequence.h
+    UnAsync/Pipes/PipeResults.h
 )
 
 add_library(UnAsync STATIC ${SRC})

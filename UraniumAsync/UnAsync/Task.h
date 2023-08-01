@@ -128,6 +128,23 @@ namespace UN::Async
         }
     };
 
+    template<class T>
+    requires(!std::is_reference_v<T> && !std::is_void_v<T>) inline Task<T> CreateCompletedTask(T&& value) noexcept
+    {
+        co_return value;
+    }
+
+    template<class T>
+    requires(std::is_reference_v<T>) inline Task<T> CreateCompletedTask(T value) noexcept
+    {
+        co_return value;
+    }
+
+    inline Task<void> CreateCompletedTask() noexcept
+    {
+        co_return;
+    }
+
     namespace Internal
     {
         template<class T>
