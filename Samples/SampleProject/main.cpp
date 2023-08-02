@@ -44,9 +44,8 @@ Task<> Test1(const CancellationToken& cancellationToken)
     }
 }
 
-Task<> CancellingTask(CancellationSource& source)
+void CancellingTask(CancellationSource& source)
 {
-    co_await Job::Run(pScheduler.Get());
     std::cout << "Cancelling task\n" << std::flush;
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(5s);
@@ -60,11 +59,13 @@ Task<> TestAwait()
     CancellationSource cancellationSource;
     auto cancellationToken = cancellationSource.GetToken();
 
+    Job::RunOneTime(pScheduler.Get(), &CancellingTask, cancellationSource);
+
     auto f = [cancellationToken] {
         return Test1(cancellationToken);
     };
 
-    co_await WhenAllReady(f(), f(), CancellingTask(cancellationSource));
+    co_await WhenAllReady(f(), f());
 }
 
 int main()

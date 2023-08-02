@@ -42,21 +42,23 @@ namespace UN::Async
         Job* m_Dependent = nullptr;
         IJobScheduler* m_pScheduler;
 
-        inline Int16 IncrementDependencyCount();
-        inline Int16 DecrementDependencyCount();
+        inline UInt16 IncrementDependencyCount();
+        inline UInt16 DecrementDependencyCount();
 
     private:
-        std::atomic<Int16> m_Flags{};
+        std::atomic<UInt16> m_Flags{};
 
-        inline static constexpr Int16 PriorityBitCount        = 2;
-        inline static constexpr Int16 DependencyCountBitCount = 16 - PriorityBitCount;
+        inline static constexpr UInt16 PriorityBitCount        = 2;
+        inline static constexpr UInt16 IsOneTimeSubmitBitCount = 1;
+        inline static constexpr UInt16 DependencyCountBitCount = 16 - PriorityBitCount - IsOneTimeSubmitBitCount;
 
-        inline static constexpr Int16 DependencyCountShift = 0;
-        inline static constexpr Int16 PriorityShift        = DependencyCountShift;
-        inline static constexpr Int16 StateShift           = PriorityShift + PriorityBitCount;
+        inline static constexpr UInt16 DependencyCountShift = 0;
+        inline static constexpr UInt16 PriorityShift        = DependencyCountBitCount;
+        inline static constexpr UInt16 IsOneTimeSubmitShift = PriorityShift + PriorityBitCount;
 
-        inline static constexpr Int16 DependencyCountMask = MakeMask(DependencyCountBitCount, DependencyCountShift);
-        inline static constexpr Int16 PriorityMask        = MakeMask(PriorityBitCount, PriorityShift);
+        inline static constexpr UInt16 DependencyCountMask = MakeMask(DependencyCountBitCount, DependencyCountShift);
+        inline static constexpr UInt16 PriorityMask        = MakeMask(PriorityBitCount, PriorityShift);
+        inline static constexpr UInt16 IsOneTimeSubmitMask = MakeMask(IsOneTimeSubmitBitCount, IsOneTimeSubmitShift);
 
         //! \brief Synchronously run the job. Will be called from worker thread.
         //!
@@ -66,8 +68,8 @@ namespace UN::Async
     public:
         UN_RTTI_Class(Job, "69DA12B5-DFFC-4A38-BBB8-0018699C30BA");
 
-        inline explicit Job(JobPriority priority = JobPriority::Normal, bool isEmpty = false);
-        ~Job() = default;
+        inline explicit Job(JobPriority priority = JobPriority::Normal, bool isEmpty = false, bool isOneTimeSubmit = false);
+        virtual ~Job() = default;
 
         inline void ExecuteInternal(const JobExecutionContext& context);
 
@@ -108,14 +110,17 @@ namespace UN::Async
 
             if constexpr (std::is_void_v<std::invoke_result_t<TFunc, Args...>>)
             {
-                f(std::forward<Args>(args)...);
+                std::invoke(f, std::forward<Args>(args)...);
                 co_return;
             }
             else
             {
-                co_return f(std::forward<Args>(args)...);
+                co_return std::invoke(f, std::forward<Args>(args)...);
             }
         }
+
+        template<class TFunc, class... Args>
+        inline static void RunOneTime(IJobScheduler* pScheduler, TFunc f, Args... args);
 
         //! \return Job's priority.
         [[nodiscard]] inline JobPriority GetPriority() const;
@@ -127,6 +132,8 @@ namespace UN::Async
 
         [[nodiscard]] inline bool Empty() const;
 
+        [[nodiscard]] inline bool IsOneTimeSubmit() const;
+
         //! \return Maximum number of dependencies a job can handle.
         [[nodiscard]] static inline constexpr UInt16 GetMaxDependencyCount()
         {
@@ -134,11 +141,13 @@ namespace UN::Async
         }
     };
 
-    Job::Job(JobPriority priority, bool isEmpty)
+    Job::Job(JobPriority priority, bool isEmpty, bool isOneTimeSubmit)
         : m_TreeEmptyPair(nullptr, isEmpty)
     {
-        Int16 value = static_cast<Int16>(priority) << PriorityShift;
-        value |= 1 << DependencyCountShift;
+        UInt16 value = 0;
+        value |= static_cast<UInt16>(1) << DependencyCountShift;
+        value |= static_cast<UInt16>(priority) << PriorityShift;
+        value |= static_cast<UInt16>(isOneTimeSubmit ? 1 : 0) << IsOneTimeSubmitShift;
         m_Flags.store(value, std::memory_order_relaxed);
     }
 
@@ -155,14 +164,14 @@ namespace UN::Async
 
     void Job::SetPriority(JobPriority priority)
     {
-        Int16 cleared = m_Flags.load() & ~PriorityMask;
-        Int16 value   = static_cast<Int16>(priority) << PriorityShift;
+        UInt16 cleared = m_Flags.load() & ~PriorityMask;
+        UInt16 value   = static_cast<UInt16>(priority) << PriorityShift;
         m_Flags.store(value | cleared);
     }
 
     JobPriority Job::GetPriority() const
     {
-        Int16 value = m_Flags.load() & PriorityMask;
+        UInt16 value = m_Flags.load() & PriorityMask;
         return static_cast<JobPriority>(value >> PriorityShift);
     }
 
@@ -172,12 +181,12 @@ namespace UN::Async
         DecrementDependencyCount();
     }
 
-    Int16 Job::IncrementDependencyCount()
+    UInt16 Job::IncrementDependencyCount()
     {
         return (++m_Flags & DependencyCountMask) >> DependencyCountShift;
     }
 
-    Int16 Job::DecrementDependencyCount()
+    UInt16 Job::DecrementDependencyCount()
     {
         auto value = (--m_Flags & DependencyCountMask) >> DependencyCountShift;
         if (value == 0)
@@ -185,16 +194,21 @@ namespace UN::Async
             m_pScheduler->ScheduleJob(this);
         }
 
-        return static_cast<Int16>(value);
+        return static_cast<UInt16>(value);
     }
 
     void Job::ExecuteInternal(const JobExecutionContext& context)
     {
         auto* dependent = m_Dependent;
+        auto oneTime = IsOneTimeSubmit();
         Execute(context);
         if (dependent)
         {
             dependent->DecrementDependencyCount();
+        }
+        if (oneTime)
+        {
+            delete this;
         }
     }
 
@@ -203,7 +217,42 @@ namespace UN::Async
         return m_TreeEmptyPair.GetBool();
     }
 
-    class SchedulerOperation : public Job
+    bool Job::IsOneTimeSubmit() const
+    {
+        UInt16 value = m_Flags.load() & IsOneTimeSubmitMask;
+        return value == IsOneTimeSubmitMask;
+    }
+
+    template<class TFunc>
+    class FunctionJob : public Job
+    {
+        TFunc m_Function;
+
+        inline void Execute(const JobExecutionContext&) override
+        {
+            m_Function();
+        }
+
+    public:
+        inline explicit FunctionJob(TFunc&& function, JobPriority priority = JobPriority::Normal, bool isOneTimeSubmit = false)
+            : Job(priority, false, isOneTimeSubmit)
+            , m_Function(std::move(function))
+        {
+        }
+    };
+
+    template<class TFunc, class... Args>
+    void Job::RunOneTime(IJobScheduler* pScheduler, TFunc f, Args... args)
+    {
+        auto func = [f, args...]() {
+            std::invoke(f, args...);
+        };
+
+        auto* job = new FunctionJob(std::forward<decltype(func)>(func), JobPriority::Normal, true);
+        pScheduler->ScheduleJob(job);
+    }
+
+    class [[nodiscard]] SchedulerOperation : public Job
     {
         std::coroutine_handle<> m_AwaitingCoroutine;
 
