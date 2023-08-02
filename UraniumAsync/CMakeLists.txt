@@ -1,4 +1,7 @@
 set(SRC
+    UnAsync/Buffers/IReadOnlySequenceSegment.h
+    UnAsync/Buffers/ReadOnlySequence.h
+
     UnAsync/Cancellation/CancellationSource.h
     UnAsync/Cancellation/CancellationToken.h
     UnAsync/Cancellation/CancellationSource.cpp
@@ -28,9 +31,12 @@ set(SRC
     UnAsync/Parallel/Semaphore.cpp
     UnAsync/Parallel/SpinMutex.h
 
+    UnAsync/Pipes/Internal/BufferSegment.h
     UnAsync/Pipes/Pipe.cpp
     UnAsync/Pipes/Pipe.h
-    UnAsync/Pipes/Internal/BufferSegment.h
+    UnAsync/Pipes/PipeResults.h
+    UnAsync/Pipes/PipeReader.h
+    UnAsync/Pipes/PipeWriter.h
 
     UnAsync/SyncWait.h
     UnAsync/Task.h
@@ -39,9 +45,6 @@ set(SRC
     UnAsync/TaskMap.h
     UnAsync/AsyncEvent.h
     UnAsync/AsyncEvent.cpp
-    UnAsync/Buffers/IReadOnlySequenceSegment.h
-    UnAsync/Buffers/ReadOnlySequence.h
-    UnAsync/Pipes/PipeResults.h
 )
 
 add_library(UnAsync STATIC ${SRC})

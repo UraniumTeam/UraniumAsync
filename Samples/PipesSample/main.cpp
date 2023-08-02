@@ -2,6 +2,8 @@
 #include <UnAsync/Cancellation/CancellationToken.h>
 #include <UnAsync/Jobs/JobScheduler.h>
 #include <UnAsync/Pipes/Pipe.h>
+#include <UnAsync/Pipes/PipeReader.h>
+#include <UnAsync/Pipes/PipeWriter.h>
 #include <UnAsync/SyncWait.h>
 #include <UnAsync/Task.h>
 #include <UnAsync/WhenAll.h>
@@ -13,16 +15,15 @@ using namespace UN;
 using namespace UN::Async;
 
 Ptr<IJobScheduler> pScheduler = AllocateObject<JobScheduler>(4);
-Ptr pPipe                     = AllocateObject<Pipe>(PipeDesc{ .JobScheduler = pScheduler });
 
 USize bytesWritten = 0;
 USize bytesRead    = 0;
 
 Task<> ReceiveData(const ArraySlice<Byte>& memory)
 {
-//    co_await Job::Run(pScheduler.Get());
-//    using namespace std::chrono_literals;
-//    std::this_thread::sleep_for(1us);
+    //    co_await Job::Run(pScheduler.Get());
+    //    using namespace std::chrono_literals;
+    //    std::this_thread::sleep_for(1us);
 
     for (auto i : std::views::iota(static_cast<USize>(0), memory.Length()))
     {
@@ -32,7 +33,7 @@ Task<> ReceiveData(const ArraySlice<Byte>& memory)
     co_return;
 }
 
-Task<> FillPipeTask(const CancellationToken& token)
+Task<> FillPipeTask(const PipeWriter& writer, const CancellationToken& token)
 {
     constexpr auto minimumBufferSize = 512;
 
@@ -40,13 +41,13 @@ Task<> FillPipeTask(const CancellationToken& token)
     while (true)
     {
         // std::cout << Fmt::Format("Writing {}\n", i) << std::flush;
-        auto memory = pPipe->GetMemory(minimumBufferSize);
+        auto memory = writer.GetMemory(minimumBufferSize);
         co_await ReceiveData(memory);
 
-        pPipe->Advance(memory.Length());
+        writer.Advance(memory.Length());
         bytesWritten += memory.Length();
 
-        auto flush = co_await pPipe->FlushAsync(token);
+        auto flush = co_await writer.FlushAsync(token);
 
         if (flush.IsCompleted())
         {
@@ -60,29 +61,29 @@ Task<> FillPipeTask(const CancellationToken& token)
         }
     }
 
-    pPipe->CompleteWriter();
+    writer.Complete();
 }
 
-Task<> ReadPipeTask(const CancellationToken& token)
+Task<> ReadPipeTask(const PipeReader& reader, const CancellationToken& token)
 {
     while (true)
     {
-        auto read = co_await pPipe->ReadAsync(token);
+        auto read = co_await reader.ReadAsync(token);
 
-//        using namespace std::chrono_literals;
-//        std::this_thread::sleep_for(100ms);
+        //        using namespace std::chrono_literals;
+        //        std::this_thread::sleep_for(100ms);
 
         auto buffer = read.GetMemory();
-//        String s;
+        //        String s;
         for (auto& byte : buffer)
         {
             (void)byte;
-//            s += Fmt::Format("{}", static_cast<Int32>(byte));
+            //            s += Fmt::Format("{}", static_cast<Int32>(byte));
             bytesRead++;
         }
 
         // std::cout << Fmt::Format("Read {}\n", s(0, 16)) << std::flush;
-        pPipe->AdvanceReader(buffer.end());
+        reader.Advance(buffer.end());
 
         if (read.IsCompleted() || read.IsCancelled())
         {
@@ -90,11 +91,13 @@ Task<> ReadPipeTask(const CancellationToken& token)
         }
     }
 
-    pPipe->CompleteReader();
+    reader.Complete();
 }
 
 Task<> Process()
 {
+    Ptr pPipe = AllocateObject<Pipe>(PipeDesc{ .JobScheduler = pScheduler });
+
     AsyncEvent cancellationThreadFinished;
 
     CancellationSource source;
@@ -105,7 +108,7 @@ Task<> Process()
         source.Cancel();
         cancellationThreadFinished.Set();
     });
-    co_await WhenAllReady(FillPipeTask(token), ReadPipeTask(token));
+    co_await WhenAllReady(FillPipeTask(PipeWriter(pPipe.Get()), token), ReadPipeTask(PipeReader(pPipe.Get()), token));
     co_await cancellationThreadFinished;
 }
 

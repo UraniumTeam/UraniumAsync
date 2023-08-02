@@ -57,8 +57,8 @@ namespace UN::Async
         AsyncEvent m_WriterAwaitable;
         AsyncEvent m_ReaderAwaitable;
 
-        std::atomic_bool m_WriterComplete;
-        std::atomic_bool m_ReaderComplete;
+        bool m_WriterComplete = false;
+        bool m_ReaderComplete = false;
 
         USize m_LastExaminedIndex = 0;
 
@@ -89,7 +89,7 @@ namespace UN::Async
     public:
         explicit Pipe(const PipeDesc& desc);
 
-        inline ArraySlice<Byte> GetMemory(USize sizeHint)
+        [[nodiscard]] inline ArraySlice<Byte> GetMemory(USize sizeHint)
         {
             UN_Assert(!m_WriterComplete, "Writer completed");
 

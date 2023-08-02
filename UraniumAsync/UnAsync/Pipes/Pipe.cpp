@@ -337,7 +337,6 @@ namespace UN::Async
 
             if (examinedEverything && !m_WriterComplete)
             {
-                UN_Assert(m_WriterAwaitable.IsSet(), "Deadlock would occur");
                 m_ReaderAwaitable.Reset();
             }
 
