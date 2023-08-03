@@ -78,7 +78,7 @@ namespace UN::Async
         inline void RentMemory(BufferSegment* segment, USize sizeHint);
         inline BufferSegment* AllocateSegment(USize sizeHint);
         inline void ReturnSegment(BufferSegment* pSegment);
-        inline void Schedule(AsyncEvent& event) const;
+        inline void Schedule(AsyncEvent& event);
 
         void CompletePipe();
         void AllocateWritingHeadSync(USize sizeHint);

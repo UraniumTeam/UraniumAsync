@@ -13,6 +13,10 @@ namespace UN::Async::Internal
     {
         using coroutine_handle_t = std::coroutine_handle<SyncWaitTaskPromise<TResult>>;
 
+        ManualResetEvent* m_Event;
+        std::remove_reference_t<TResult>* m_Result;
+        std::exception_ptr m_Exception;
+
     public:
         using reference = TResult&&;
 
@@ -62,9 +66,7 @@ namespace UN::Async::Internal
 
         inline void return_void() noexcept
         {
-            // The coroutine should have either yielded a value or thrown
-            // an exception in which case it should have bypassed return_void().
-            assert(false);
+            UN_Unreachable("");
         }
 
         inline void unhandled_exception()
@@ -81,17 +83,15 @@ namespace UN::Async::Internal
 
             return static_cast<reference>(*m_Result);
         }
-
-    private:
-        ManualResetEvent* m_Event;
-        std::remove_reference_t<TResult>* m_Result;
-        std::exception_ptr m_Exception;
     };
 
     template<>
     class SyncWaitTaskPromise<void>
     {
         using coroutine_handle_t = std::coroutine_handle<SyncWaitTaskPromise<void>>;
+
+        ManualResetEvent* m_Event;
+        std::exception_ptr m_Exception;
 
     public:
         inline SyncWaitTaskPromise() noexcept {}
@@ -114,7 +114,7 @@ namespace UN::Async::Internal
 
         inline auto final_suspend() noexcept
         {
-            class completion_notifier
+            class Notifier
             {
             public:
                 bool await_ready() const noexcept
@@ -130,7 +130,7 @@ namespace UN::Async::Internal
                 void await_resume() noexcept {}
             };
 
-            return completion_notifier{};
+            return Notifier{};
         }
 
         inline void return_void() {}
@@ -147,10 +147,6 @@ namespace UN::Async::Internal
                 std::rethrow_exception(m_Exception);
             }
         }
-
-    private:
-        ManualResetEvent* m_Event;
-        std::exception_ptr m_Exception;
     };
 
     template<class TResult>
@@ -161,6 +157,10 @@ namespace UN::Async::Internal
 
         using coroutine_handle_t = std::coroutine_handle<promise_type>;
 
+    private:
+        coroutine_handle_t m_Coroutine;
+
+    public:
         inline SyncWaitTask(coroutine_handle_t coroutine) noexcept
             : m_Coroutine(coroutine)
         {
@@ -189,9 +189,6 @@ namespace UN::Async::Internal
         {
             return m_Coroutine.promise().GetResult();
         }
-
-    private:
-        coroutine_handle_t m_Coroutine;
     };
 
     template<class TAwaitable, class TResult = typename AwaitableTraits<TAwaitable&&>::AwaitResultType>
