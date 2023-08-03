@@ -151,10 +151,16 @@ namespace UN::Async
         return resumeReader;
     }
 
-    void Pipe::Schedule(AsyncEvent& event) const
+    void Pipe::Schedule(AsyncEvent& event)
     {
         // Run the awaitable continuation on a job scheduler thread without awaiting it.
-        Job::RunOneTime(m_Desc.JobScheduler.Get(), &AsyncEvent::Set, &event);
+        Ptr self = this;
+        Job::RunOneTime(m_Desc.JobScheduler.Get(), [self, &event]() {
+            [[likely]] if (!self->m_WriterComplete || !self->m_ReaderComplete)
+            {
+                event.Set();
+            }
+        });
     }
 
     Task<PipeFlushResult> Pipe::FlushAsync(const CancellationToken& cancellationToken)
