@@ -55,25 +55,25 @@ namespace UN::Async
         {
         }
 
-        UN_FINLINE bool TryLock() noexcept
+        UN_FINLINE bool try_lock() noexcept
         {
             return !m_Flag.exchange(true, std::memory_order_acquire);
         }
 
-        UN_FINLINE void Lock() noexcept
+        UN_FINLINE void lock() noexcept
         {
-            if (!TryLock())
+            if (!try_lock())
             {
                 Internal::SpinLockWait wait;
 
-                while (!TryLock())
+                while (!try_lock())
                 {
                     wait.Wait();
                 }
             }
         }
 
-        UN_FINLINE void Unlock() noexcept
+        UN_FINLINE void unlock() noexcept
         {
             m_Flag.store(false, std::memory_order_release);
         }

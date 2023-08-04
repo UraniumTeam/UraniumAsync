@@ -3,6 +3,7 @@
 #include <UnAsync/Buffers/ReadOnlySequence.h>
 #include <UnAsync/Cancellation/CancellationToken.h>
 #include <UnAsync/Jobs/IJobScheduler.h>
+#include <UnAsync/Parallel/SpinMutex.h>
 #include <UnAsync/Pipes/Internal/BufferSegment.h>
 #include <UnAsync/Pipes/PipeResults.h>
 #include <UnAsync/Task.h>
@@ -37,7 +38,7 @@ namespace UN::Async
         USize InitialSegmentPoolSize = 4;
         USize PauseWriterThreshold   = DefaultPauseWriterThreshold;
         USize ResumeWriterThreshold  = DefaultPauseWriterThreshold / 2;
-        Ptr<ArrayPool<Byte>> Pool;
+        Ptr<ArrayPool<Byte, SpinMutex>> Pool;
         Ptr<IJobScheduler> JobScheduler;
     };
 
