@@ -11,7 +11,7 @@ namespace UN::Async
 
         if (!m_Desc.Pool)
         {
-            m_Desc.Pool = AllocateObject<ArrayPool<Byte>>(SystemAllocator::Get());
+            m_Desc.Pool = AllocateObject<ArrayPool<Byte, SpinMutex>>(SystemAllocator::Get());
         }
 
         m_SegmentPool.Reserve(m_Desc.InitialSegmentPoolSize);
@@ -154,11 +154,12 @@ namespace UN::Async
     void Pipe::Schedule(AsyncEvent& event)
     {
         // Run the awaitable continuation on a job scheduler thread without awaiting it.
-        Ptr self = this;
-        Job::RunOneTime(m_Desc.JobScheduler.Get(), [self, &event]() {
-            [[likely]] if (!self->m_WriterComplete || !self->m_ReaderComplete)
+        this->AddRef();
+        Job::RunOneTime(m_Desc.JobScheduler.Get(), [this, &event]() {
+            [[likely]] if (!m_WriterComplete || !m_ReaderComplete)
             {
                 event.Set();
+                this->Release();
             }
         });
     }
