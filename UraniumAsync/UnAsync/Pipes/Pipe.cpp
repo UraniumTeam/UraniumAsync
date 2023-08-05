@@ -159,8 +159,9 @@ namespace UN::Async
             [[likely]] if (!m_WriterComplete || !m_ReaderComplete)
             {
                 event.Set();
-                this->Release();
             }
+
+            this->Release();
         });
     }
 
