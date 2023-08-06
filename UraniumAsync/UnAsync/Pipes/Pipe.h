@@ -79,6 +79,7 @@ namespace UN::Async
         inline void RentMemory(BufferSegment* segment, USize sizeHint);
         inline BufferSegment* AllocateSegment(USize sizeHint);
         inline void ReturnSegment(BufferSegment* pSegment);
+        inline void FreeSegment(BufferSegment* pSegment, bool allowPooling);
         inline void Schedule(AsyncEvent& event);
 
         void CompletePipe();
