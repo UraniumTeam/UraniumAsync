@@ -61,6 +61,21 @@ namespace UN::Async
         }
     }
 
+    void Pipe::FreeSegment(Pipe::BufferSegment* pSegment, bool allowPooling)
+    {
+        m_Desc.Pool->Return(pSegment->GetAvailableMemory());
+        pSegment->Reset();
+
+        if (allowPooling)
+        {
+            ReturnSegment(pSegment);
+        }
+        else
+        {
+            delete pSegment;
+        }
+    }
+
     void Pipe::AllocateWritingHead(USize sizeHint)
     {
         if (!AllFlagsActive(m_OperationState, State::Writing) || m_WritingHeadMemory.Length() == 0
@@ -249,7 +264,7 @@ namespace UN::Async
         {
             auto* returnSegment = segment;
             segment             = segment->Next();
-            delete returnSegment;
+            FreeSegment(returnSegment, false);
         }
 
         for (auto* s : m_SegmentPool)
@@ -351,9 +366,7 @@ namespace UN::Async
             while (returnStart != nullptr && returnStart != returnEnd)
             {
                 BufferSegment* next = returnStart->Next();
-                m_Desc.Pool->Return(returnStart->GetAvailableMemory());
-                returnStart->Reset();
-                ReturnSegment(returnStart);
+                FreeSegment(returnStart, true);
                 returnStart = next;
             }
 
