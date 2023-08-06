@@ -88,6 +88,8 @@ namespace UN::Async
         bool CommitUnsynchronized();
 
     public:
+        UN_RTTI_Class(Pipe, "6AF49E1B-DD81-4ED3-8D17-C1C15E68399D");
+
         explicit Pipe(const PipeDesc& desc);
 
         [[nodiscard]] inline ArraySlice<Byte> GetMemory(USize sizeHint)
