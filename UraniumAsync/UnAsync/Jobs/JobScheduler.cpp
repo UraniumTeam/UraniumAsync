@@ -10,7 +10,7 @@ namespace UN::Async
         , m_ShouldExit(false)
     {
         auto* allocator = SystemAllocator::Get();
-        m_Threads.Reserve(m_WorkerCount);
+        m_Threads.Reserve(256);
         for (UInt32 i = 0; i < workerCount; ++i)
         {
             auto* thread = new (allocator->Allocate(sizeof(SchedulerThreadInfo), 16)) SchedulerThreadInfo;
@@ -87,6 +87,8 @@ namespace UN::Async
     {
         if (!m_CurrentThreadInfo)
         {
+            std::shared_lock lk(m_ThreadsMutex);
+
             for (auto& thread : m_Threads)
             {
                 if (thread->ThreadID == std::this_thread::get_id())
@@ -95,14 +97,18 @@ namespace UN::Async
                 }
             }
         }
+
         if (!m_CurrentThreadInfo)
         {
+            std::unique_lock lk(m_ThreadsMutex);
+
             auto* allocator  = SystemAllocator::Get();
             auto* thread     = new (allocator->Allocate(sizeof(SchedulerThreadInfo), 16)) SchedulerThreadInfo;
             thread->ThreadID = std::this_thread::get_id();
             m_Threads.Push(thread);
             m_CurrentThreadInfo = thread;
         }
+
         return m_CurrentThreadInfo;
     }
 
