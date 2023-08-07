@@ -5,6 +5,7 @@
 #include <UnTL/Containers/List.h>
 #include <deque>
 #include <mutex>
+#include <shared_mutex>
 #include <thread>
 
 namespace UN::Async
@@ -137,6 +138,7 @@ namespace UN::Async
     {
         const UInt32 m_WorkerCount;
         List<SchedulerThreadInfo*> m_Threads;
+        std::shared_mutex m_ThreadsMutex;
         JobGlobalQueue m_GlobalQueue;
 
         Semaphore m_Semaphore;
