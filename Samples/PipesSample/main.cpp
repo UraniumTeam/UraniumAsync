@@ -35,6 +35,7 @@ Task<> ReceiveData(const ArraySlice<Byte>& memory)
 
 Task<> FillPipeTask(const PipeWriter& writer, const CancellationToken& token)
 {
+    co_await Job::Run(pScheduler.Get());
     constexpr auto minimumBufferSize = 512;
 
     // for (auto i : std::views::iota(0, 100))
@@ -66,24 +67,27 @@ Task<> FillPipeTask(const PipeWriter& writer, const CancellationToken& token)
 
 Task<> ReadPipeTask(const PipeReader& reader, const CancellationToken& token)
 {
+    co_await Job::Run(pScheduler.Get());
     while (true)
     {
         auto read = co_await reader.ReadAsync(token);
+//
+//        using namespace std::chrono_literals;
+//        std::this_thread::sleep_for(100ms);
 
-        //        using namespace std::chrono_literals;
-        //        std::this_thread::sleep_for(100ms);
+        auto sequence = read.GetMemory();
 
-        auto buffer = read.GetMemory();
-        //        String s;
-        for (auto& byte : buffer)
+        USize bytes = 0;
+        for (ArraySlice<const Byte> buffer : sequence)
         {
-            (void)byte;
-            //            s += Fmt::Format("{}", static_cast<Int32>(byte));
-            bytesRead++;
+            // std::cout << "-->" << buffer.Length() << std::endl;
+            bytes += buffer.Length();
         }
 
-        // std::cout << Fmt::Format("Read {}\n", s(0, 16)) << std::flush;
-        reader.Advance(buffer.end());
+        // std::cout << bytes << std::endl;
+        bytesRead += bytes;
+
+        reader.Advance(sequence.end());
 
         if (read.IsCompleted() || read.IsCancelled())
         {
