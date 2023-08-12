@@ -1,8 +1,8 @@
 set(SRC
     Common/Common.h
 
-    Test.cpp
     main.cpp
+    Buffers/ReadOnlySequence.cpp
 )
 
 add_executable(UnAsyncTests ${SRC})
