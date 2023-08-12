@@ -13,6 +13,11 @@ namespace UN::Async::Internal
         USize m_RunningIndex   = 0;
 
     public:
+        inline ~BufferSegment() final
+        {
+            Reset();
+        }
+
         inline void Reset()
         {
             m_Memory       = {};

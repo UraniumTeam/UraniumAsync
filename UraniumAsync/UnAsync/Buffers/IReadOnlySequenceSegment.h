@@ -7,6 +7,8 @@ namespace UN::Async
     class [[nodiscard]] IReadOnlySequenceSegment
     {
     public:
+        virtual ~IReadOnlySequenceSegment() = default;
+
         [[nodiscard]] virtual ArraySlice<const T> GetMemory() const     = 0;
         [[nodiscard]] virtual IReadOnlySequenceSegment<T>* Next() const = 0;
         [[nodiscard]] virtual USize RunningIndex() const                = 0;

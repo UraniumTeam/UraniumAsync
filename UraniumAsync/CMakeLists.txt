@@ -1,6 +1,7 @@
 set(SRC
     UnAsync/Buffers/IReadOnlySequenceSegment.h
     UnAsync/Buffers/ReadOnlySequence.h
+    UnAsync/Buffers/SequenceReader.h
 
     UnAsync/Cancellation/CancellationSource.h
     UnAsync/Cancellation/CancellationToken.h
