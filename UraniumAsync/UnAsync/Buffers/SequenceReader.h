@@ -18,6 +18,35 @@ namespace UN::Async
         ArraySlice<const T> m_CurrentBuffer;
         USize m_CurrentBufferIndex;
 
+        inline void Reset()
+        {
+            m_CurrentBufferIndex = 0;
+            m_Consumed           = 0;
+            m_CurrentPosition    = m_Sequence.BeginPosition();
+            m_NextPosition       = m_CurrentPosition;
+
+            ArraySlice<const T> memory;
+            if (m_Sequence.TryGetNext(m_NextPosition, memory, true))
+            {
+                m_MoreData = true;
+
+                if (memory.Empty())
+                {
+                    m_CurrentBuffer = {};
+                    MoveToNextBuffer();
+                }
+                else
+                {
+                    m_CurrentBuffer = memory;
+                }
+            }
+            else
+            {
+                m_MoreData      = false;
+                m_CurrentBuffer = {};
+            }
+        }
+
         inline void MoveToNextBuffer()
         {
             if (!m_Sequence.IsSingleSegment())
@@ -94,7 +123,7 @@ namespace UN::Async
     public:
         inline explicit SequenceReader(const ReadOnlySequence<T>& sequence)
             : m_Sequence(sequence)
-            , m_CurrentPosition(sequence.begin())
+            , m_CurrentPosition(sequence.BeginPosition())
             , m_Length(std::numeric_limits<USize>::max())
             , m_Consumed(0)
             , m_CurrentBufferIndex(0)
@@ -191,6 +220,30 @@ namespace UN::Async
             }
 
             UN_Assert(count == 0, "Out of range");
+        }
+
+        inline void Rewind(USize count) noexcept
+        {
+            UN_Assert(count <= m_Consumed, "Out of range");
+
+            if (count == 0)
+            {
+                return;
+            }
+
+            m_Consumed -= count;
+
+            if (m_CurrentBufferIndex >= count)
+            {
+                m_CurrentBufferIndex -= count;
+                m_MoreData = true;
+            }
+            else
+            {
+                auto consumed = m_Consumed;
+                Reset();
+                Advance(consumed);
+            }
         }
 
         [[nodiscard]] inline std::optional<T> Peek() const noexcept
