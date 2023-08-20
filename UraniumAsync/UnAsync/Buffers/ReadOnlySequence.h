@@ -181,22 +181,22 @@ namespace UN::Async
             return m_Begin.Segment() == m_End.Segment();
         }
 
-        [[nodiscard]] inline ReadOnlySequence<T> operator()(const SequencePosition<T>& begin, const SequencePosition<T>& end)
+        [[nodiscard]] inline ReadOnlySequence<T> operator()(const SequencePosition<T>& begin, const SequencePosition<T>& end) const noexcept
         {
             return ReadOnlySequence<T>(begin, end);
         }
 
-        [[nodiscard]] inline ReadOnlySequence<T> operator()(const SequencePosition<T>& begin)
+        [[nodiscard]] inline ReadOnlySequence<T> operator()(const SequencePosition<T>& begin) const noexcept
         {
             return ReadOnlySequence<T>(begin, m_End);
         }
 
-        [[nodiscard]] inline ReadOnlySequence<T> operator()(USize begin, USize end)
+        [[nodiscard]] inline ReadOnlySequence<T> operator()(USize begin, USize end) const
         {
             return ReadOnlySequence<T>(Seek(begin), Seek(end));
         }
 
-        [[nodiscard]] inline ReadOnlySequence<T> operator()(USize begin)
+        [[nodiscard]] inline ReadOnlySequence<T> operator()(USize begin) const
         {
             return ReadOnlySequence<T>(Seek(begin), m_End);
         }

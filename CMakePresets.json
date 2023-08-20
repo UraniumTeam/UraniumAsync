@@ -18,7 +18,12 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "CMAKE_CXX_COMPILER": "cl.exe"
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "UN_USE_SSE41": "ON",
+                "UN_USE_SSE3": "ON",
+                "UN_USE_AVX2": "ON",
+                "UN_BUILD_SAMPLES": "ON",
+                "UN_BUILD_TESTS": "ON"
             },
             "vendor": {
                 "microsoft.com/VisualStudioSettings/CMake/1.0": {
