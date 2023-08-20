@@ -174,6 +174,17 @@ TEST(ReadOnlySequence, SliceToEnd)
     Destroy(s);
 }
 
+TEST(SequenceReader, UnreadSequence)
+{
+    List<StringSlice> strings = { "#abbbb", "bbcccc", "ccccd###" };
+    auto s                    = Create(strings, 1, 5);
+    auto reader               = SequenceReader(s);
+    auto unread               = reader.UnreadSequence();
+    auto unreadReader         = SequenceReader(unread);
+
+    EXPECT_EQ(BufferToString(unreadReader.UnreadBuffer()), "abbbb");
+}
+
 TEST(SequenceReader, Construct)
 {
     List<StringSlice> strings = { "#bc123", "def456", "ghi78#" };

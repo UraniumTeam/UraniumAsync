@@ -59,7 +59,9 @@ Task<> TestAwait()
     CancellationSource cancellationSource;
     auto cancellationToken = cancellationSource.GetToken();
 
-    Job::RunOneTime(pScheduler.Get(), &CancellingTask, cancellationSource);
+    Job::RunOneTime(pScheduler.Get(), [&cancellationSource]() {
+        CancellingTask(cancellationSource);
+    });
 
     auto f = [cancellationToken] {
         return Test1(cancellationToken);

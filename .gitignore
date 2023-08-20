@@ -26,6 +26,7 @@ cmake-build-release/
 # IDEs
 .vs/
 .idea/
+.vscode/
 
 # python
 **/*/__pycache__
