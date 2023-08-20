@@ -193,12 +193,12 @@ namespace UN::Async
 
         [[nodiscard]] inline ReadOnlySequence<T> operator()(USize begin, USize end) const
         {
-            return ReadOnlySequence<T>(Seek(begin), Seek(end));
+            return ReadOnlySequence<T>(Seek(m_Begin, begin), Seek(m_Begin, end));
         }
 
         [[nodiscard]] inline ReadOnlySequence<T> operator()(USize begin) const
         {
-            return ReadOnlySequence<T>(Seek(begin), m_End);
+            return ReadOnlySequence<T>(Seek(m_Begin, begin), m_End);
         }
 
         [[nodiscard]] inline std::tuple<ArraySlice<const T>, SequencePosition<T>> GetFirstBuffer() const noexcept
