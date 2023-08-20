@@ -191,6 +191,16 @@ namespace UN::Async
             return ReadOnlySequence<T>(begin, m_End);
         }
 
+        [[nodiscard]] inline ReadOnlySequence<T> operator()(USize begin, USize end)
+        {
+            return ReadOnlySequence<T>(Seek(begin), Seek(end));
+        }
+
+        [[nodiscard]] inline ReadOnlySequence<T> operator()(USize begin)
+        {
+            return ReadOnlySequence<T>(Seek(begin), m_End);
+        }
+
         [[nodiscard]] inline std::tuple<ArraySlice<const T>, SequencePosition<T>> GetFirstBuffer() const noexcept
         {
             if (m_Begin.Segment() == nullptr)
