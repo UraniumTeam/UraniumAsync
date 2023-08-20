@@ -174,6 +174,21 @@ TEST(ReadOnlySequence, SliceToEnd)
     Destroy(s);
 }
 
+TEST(ReadOnlySequence, SliceIndexed)
+{
+    List<StringSlice> strings = { "#bc123", "def456", "ghi78#" };
+
+    auto s     = Create(strings, 1, 5);
+    auto slice = s(2, 12);
+
+    auto dest = HeapArray<Byte>::CreateUninitialized(6 * 3 + 1);
+    dest[10]  = static_cast<Byte>(0);
+    slice.CopyDataTo(dest);
+
+    EXPECT_EQ(StringSlice(reinterpret_cast<const char*>(dest.Data())), "123def456g");
+    Destroy(s, false);
+}
+
 TEST(SequenceReader, UnreadSequence)
 {
     List<StringSlice> strings = { "#abbbb", "bbcccc", "ccccd###" };
