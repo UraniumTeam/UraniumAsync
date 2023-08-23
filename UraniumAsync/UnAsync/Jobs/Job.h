@@ -104,20 +104,7 @@ namespace UN::Async
         inline static SchedulerOperation Run(IJobScheduler* pScheduler);
 
         template<class TFunc, class... Args>
-        inline static auto Run(IJobScheduler* pScheduler, TFunc f, Args&&... args) -> Task<std::invoke_result_t<TFunc, Args...>>
-        {
-            co_await Run(pScheduler);
-
-            if constexpr (std::is_void_v<std::invoke_result_t<TFunc, Args...>>)
-            {
-                std::invoke(f, std::forward<Args>(args)...);
-                co_return;
-            }
-            else
-            {
-                co_return std::invoke(f, std::forward<Args>(args)...);
-            }
-        }
+        inline static auto Run(IJobScheduler* pScheduler, TFunc f, Args&&... args) -> Task<std::invoke_result_t<TFunc, Args...>>;
 
         template<class TFunc, class... Args>
         inline static void RunOneTime(IJobScheduler* pScheduler, TFunc f, Args... args);
@@ -200,7 +187,7 @@ namespace UN::Async
     void Job::ExecuteInternal(const JobExecutionContext& context)
     {
         auto* dependent = m_Dependent;
-        auto oneTime = IsOneTimeSubmit();
+        auto oneTime    = IsOneTimeSubmit();
         Execute(context);
         if (dependent)
         {
@@ -285,5 +272,21 @@ namespace UN::Async
     SchedulerOperation Job::Run(IJobScheduler* pScheduler)
     {
         return SchedulerOperation(pScheduler);
+    }
+
+    template<class TFunc, class... Args>
+    auto Job::Run(IJobScheduler* pScheduler, TFunc f, Args&&... args) -> Task<std::invoke_result_t<TFunc, Args...>>
+    {
+        co_await Run(pScheduler);
+
+        if constexpr (std::is_void_v<std::invoke_result_t<TFunc, Args...>>)
+        {
+            std::invoke(f, std::forward<Args>(args)...);
+            co_return;
+        }
+        else
+        {
+            co_return std::invoke(f, std::forward<Args>(args)...);
+        }
     }
 } // namespace UN::Async

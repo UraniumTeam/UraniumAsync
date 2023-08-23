@@ -1,45 +1,64 @@
 {
-    "version": 5,
-    "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 24,
-        "patch": 0
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-default-sse",
+      "displayName": "Windows x64 Debug with SSE4.1 and AVX2",
+      "description": "Sets Ninja generator, compilers, x64 architecture, build and install directory, debug build type",
+      "generator": "Ninja",
+      "binaryDir": "cmake-build-debug",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "UN_USE_SSE41": "ON",
+        "UN_USE_SSE3": "ON",
+        "UN_USE_AVX2": "ON"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Windows"
+          ]
+        }
+      }
     },
-    "configurePresets": [
-        {
-            "name": "windows-default",
-            "displayName": "Windows x64 Debug",
-            "description": "Sets Ninja generator, compilers, x64 architecture, build and install directory, debug build type",
-            "generator": "Ninja",
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "CMAKE_CXX_COMPILER": "cl.exe",
-                "UN_USE_SSE41": "ON",
-                "UN_USE_SSE3": "ON",
-                "UN_USE_AVX2": "ON",
-                "UN_BUILD_SAMPLES": "ON",
-                "UN_BUILD_TESTS": "ON"
-            },
-            "vendor": {
-                "microsoft.com/VisualStudioSettings/CMake/1.0": {
-                    "hostOS": [
-                        "Windows"
-                    ]
-                }
-            }
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "windows-default",
-            "description": "",
-            "displayName": "",
-            "configurePreset": "windows-default"
-        }
-    ]
+    {
+      "name": "linux-default-sse",
+      "displayName": "Linux x64 Debug with SSE4.1 and AVX2",
+      "description": "Sets Ninja generator, compilers, build and install directory, debug build type",
+      "generator": "Ninja",
+      "binaryDir": "cmake-build-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_MAKE_PROGRAM": "ninja",
+        "UN_USE_SSE41": "ON",
+        "UN_USE_SSE3": "ON",
+        "UN_USE_AVX2": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-default-sse",
+      "description": "",
+      "displayName": "",
+      "configurePreset": "windows-default-sse"
+    },
+    {
+      "name": "linux-default-sse",
+      "description": "",
+      "displayName": "",
+      "configurePreset": "linux-default-sse"
+    }
+  ]
 }
