@@ -1,5 +1,3 @@
-#include <UnAsync/Cancellation/CancellationSource.h>
-#include <UnAsync/Cancellation/CancellationToken.h>
 #include <UnAsync/Jobs/JobScheduler.h>
 #include <UnAsync/Pipes/Pipe.h>
 #include <UnAsync/Pipes/PipeReader.h>
@@ -10,6 +8,7 @@
 #include <UnTL/Strings/Format.h>
 #include <iostream>
 #include <ranges>
+#include <stop_token>
 
 using namespace UN;
 using namespace UN::Async;
@@ -33,7 +32,7 @@ Task<> ReceiveData(const ArraySlice<Byte>& memory)
     co_return;
 }
 
-Task<> FillPipeTask(const PipeWriter& writer, const CancellationToken& token)
+Task<> FillPipeTask(const PipeWriter& writer, const std::stop_token& token)
 {
     co_await Job::Run(pScheduler.Get());
     constexpr auto minimumBufferSize = 512;
@@ -65,15 +64,15 @@ Task<> FillPipeTask(const PipeWriter& writer, const CancellationToken& token)
     writer.Complete();
 }
 
-Task<> ReadPipeTask(const PipeReader& reader, const CancellationToken& token)
+Task<> ReadPipeTask(const PipeReader& reader, const std::stop_token& token)
 {
     co_await Job::Run(pScheduler.Get());
     while (true)
     {
         auto read = co_await reader.ReadAsync(token);
-//
-//        using namespace std::chrono_literals;
-//        std::this_thread::sleep_for(100ms);
+        //
+        //        using namespace std::chrono_literals;
+        //        std::this_thread::sleep_for(100ms);
 
         auto sequence = read.GetMemory();
 
@@ -104,12 +103,12 @@ Task<> Process()
 
     AsyncEvent cancellationThreadFinished;
 
-    CancellationSource source;
-    auto token = source.GetToken();
+    std::stop_source source;
+    auto token = source.get_token();
     Job::RunOneTime(pScheduler.Get(), [&source, &cancellationThreadFinished]() {
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(5s);
-        source.Cancel();
+        source.request_stop();
         cancellationThreadFinished.Set();
     });
     co_await WhenAllReady(FillPipeTask(PipeWriter(pPipe.Get()), token), ReadPipeTask(PipeReader(pPipe.Get()), token));

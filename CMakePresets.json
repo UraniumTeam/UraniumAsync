@@ -21,13 +21,16 @@
         "CMAKE_CXX_COMPILER": "cl.exe",
         "UN_USE_SSE41": "ON",
         "UN_USE_SSE3": "ON",
-        "UN_USE_AVX2": "ON"
+        "UN_USE_AVX2": "ON",
+        "UN_BUILD_TESTS": "ON",
+        "UN_BUILD_SAMPLES": "ON"
       },
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
           "hostOS": [
             "Windows"
-          ]
+          ],
+          "enableClangTidyCodeAnalysis": true
         }
       }
     },

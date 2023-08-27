@@ -1,10 +1,9 @@
-#include <UnAsync/Cancellation/CancellationSource.h>
-#include <UnAsync/Cancellation/CancellationToken.h>
 #include <UnAsync/Jobs/JobScheduler.h>
 #include <UnAsync/SyncWait.h>
 #include <UnAsync/Task.h>
 #include <UnAsync/WhenAll.h>
 #include <iostream>
+#include <stop_token>
 
 using namespace UN;
 using namespace UN::Async;
@@ -31,11 +30,11 @@ Task<std::thread::id> Test()
     co_return co_await Job::Run(pScheduler.Get(), &TestTask, 10'000);
 }
 
-Task<> Test1(const CancellationToken& cancellationToken)
+Task<> Test1(const std::stop_token& cancellationToken)
 {
     co_await Job::Run(pScheduler.Get());
 
-    while (!cancellationToken.IsCancellationRequested())
+    while (!cancellationToken.stop_requested())
     {
         auto [a, b, c] = co_await WhenAll(Test(), Test(), Test());
         std::cout << a << std::endl;
@@ -44,20 +43,20 @@ Task<> Test1(const CancellationToken& cancellationToken)
     }
 }
 
-void CancellingTask(CancellationSource& source)
+void CancellingTask(std::stop_source& source)
 {
     std::cout << "Cancelling task\n" << std::flush;
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(5s);
-    source.Cancel();
+    source.request_stop();
 }
 
 Task<> TestAwait()
 {
     co_await Job::Run(pScheduler.Get());
 
-    CancellationSource cancellationSource;
-    auto cancellationToken = cancellationSource.GetToken();
+    std::stop_source cancellationSource;
+    auto cancellationToken = cancellationSource.get_token();
 
     Job::RunOneTime(pScheduler.Get(), [&cancellationSource]() {
         CancellingTask(cancellationSource);

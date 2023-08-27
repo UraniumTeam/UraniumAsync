@@ -23,7 +23,7 @@ namespace UN::Async
             m_pPipe->Advance(byteCount);
         }
 
-        inline Task<PipeFlushResult> FlushAsync(const CancellationToken& cancellationToken) const
+        inline Task<PipeFlushResult> FlushAsync(const std::stop_token& cancellationToken) const
         {
             return m_pPipe->FlushAsync(cancellationToken);
         }
