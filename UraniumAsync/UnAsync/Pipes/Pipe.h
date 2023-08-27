@@ -1,7 +1,6 @@
 #pragma once
 #include <UnAsync/AsyncEvent.h>
 #include <UnAsync/Buffers/ReadOnlySequence.h>
-#include <UnAsync/Cancellation/CancellationToken.h>
 #include <UnAsync/Jobs/IJobScheduler.h>
 #include <UnAsync/Parallel/SpinMutex.h>
 #include <UnAsync/Pipes/Internal/BufferSegment.h>
@@ -11,6 +10,7 @@
 #include <UnTL/Buffers/ArrayPool.h>
 #include <UnTL/Containers/ArraySlice.h>
 #include <mutex>
+#include <stop_token>
 
 namespace UN::Async
 {
@@ -114,7 +114,7 @@ namespace UN::Async
             AdvanceUnsynchronized(byteCount);
         }
 
-        Task<PipeFlushResult> FlushAsync(const CancellationToken& cancellationToken);
+        Task<PipeFlushResult> FlushAsync(const std::stop_token& cancellationToken);
 
         void CompleteWriter();
         void CompleteReader();
@@ -126,6 +126,6 @@ namespace UN::Async
 
         void AdvanceReader(const SequencePosition<Byte>& consumed, const SequencePosition<Byte>& examined);
 
-        Task<PipeReadResult> ReadAsync(const CancellationToken& cancellationToken);
+        Task<PipeReadResult> ReadAsync(const std::stop_token& cancellationToken);
     };
 } // namespace UN::Async

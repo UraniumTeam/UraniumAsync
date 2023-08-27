@@ -13,7 +13,7 @@ namespace UN::Async
         {
         }
 
-        inline Task<PipeReadResult> ReadAsync(const CancellationToken& token) const
+        inline Task<PipeReadResult> ReadAsync(const std::stop_token& token) const
         {
             return m_pPipe->ReadAsync(token);
         }

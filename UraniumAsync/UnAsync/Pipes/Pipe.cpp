@@ -180,9 +180,9 @@ namespace UN::Async
         });
     }
 
-    Task<PipeFlushResult> Pipe::FlushAsync(const CancellationToken& cancellationToken)
+    Task<PipeFlushResult> Pipe::FlushAsync(const std::stop_token& cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested())
+        if (cancellationToken.stop_requested())
         {
             co_return PipeFlushResult(PipeResultFlags::Cancelled);
         }
@@ -202,7 +202,7 @@ namespace UN::Async
         {
             result |= PipeResultFlags::Completed;
         }
-        if (cancellationToken.IsCancellationRequested())
+        if (cancellationToken.stop_requested())
         {
             result |= PipeResultFlags::Cancelled;
         }
@@ -379,10 +379,10 @@ namespace UN::Async
         }
     }
 
-    Task<PipeReadResult> Pipe::ReadAsync(const CancellationToken& cancellationToken)
+    Task<PipeReadResult> Pipe::ReadAsync(const std::stop_token& cancellationToken)
     {
         UN_Assert(!m_ReaderComplete, "Reader completed");
-        if (cancellationToken.IsCancellationRequested())
+        if (cancellationToken.stop_requested())
         {
             co_return PipeReadResult(PipeResultFlags::Cancelled, {});
         }
@@ -397,7 +397,7 @@ namespace UN::Async
             {
                 flags |= PipeResultFlags::Completed;
             }
-            if (cancellationToken.IsCancellationRequested())
+            if (cancellationToken.stop_requested())
             {
                 flags |= PipeResultFlags::Cancelled;
             }

@@ -3,11 +3,6 @@ set(SRC
     UnAsync/Buffers/ReadOnlySequence.h
     UnAsync/Buffers/SequenceReader.h
 
-    UnAsync/Cancellation/CancellationSource.h
-    UnAsync/Cancellation/CancellationToken.h
-    UnAsync/Cancellation/CancellationSource.cpp
-    UnAsync/Cancellation/CancellationToken.cpp
-
     UnAsync/Internal/BoolPointer.h
     UnAsync/Internal/ManualResetEvent.cpp
     UnAsync/Internal/ManualResetEvent.h
@@ -19,9 +14,7 @@ set(SRC
     UnAsync/Internal/WhenAllReadyAwaiter.h
     UnAsync/Internal/WhenAllTask.h
     UnAsync/Internal/TaskMapAwaiter.h
-    UnAsync/Internal/CancellationState.cpp
-    UnAsync/Internal/CancellationState.h
-
+    
     UnAsync/Jobs/Job.h
     UnAsync/Jobs/JobTree.h
     UnAsync/Jobs/IJobScheduler.h
